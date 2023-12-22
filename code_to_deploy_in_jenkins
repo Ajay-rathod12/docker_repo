@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+    environment {
+        registry = "041041676203.dkr.ecr.eu-north-1.amazonaws.com/docker-image-repo"
+    }
+   
+    stages {
+        stage('Cloning Git') {
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: 'main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '', url: 'https://github.com/Ajay-rathod12/docker_repo.git']]])     
+            }
+        }
+   stage('Building image') {
+      steps{
+        script {
+          dockerImage = docker.build registry
+        }
+      }
+    }
+   stage('Pushing to ECR') {
+     steps{  
+         script {
+                sh 'aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 041041676203.dkr.ecr.eu-north-1.amazonaws.com'
+                sh 'docker push 041041676203.dkr.ecr.eu-north-1.amazonaws.com/docker-image-repo:latest'
+         }
+        }
+      }
+     stage('Docker Run') {
+     steps{
+         script {
+                sh 'docker run -d -p 8096:5000 --rm --name mypythonContainer  041041676203.dkr.ecr.eu-north-1.amazonaws.com/docker-image-repo:latest'
+            }
+      }
+    }
+    }
+}
