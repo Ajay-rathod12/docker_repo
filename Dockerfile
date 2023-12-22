@@ -1,5 +1,5 @@
-FROM python:3.8
-WORKDIR ./
-COPY . ./
-EXPOSE 8080
-ENTRYPOINT ["python3", "hello.py"]
+FROM public.ecr.aws/lambda/python:3.8
+
+COPY hello.py ${LAMBDA_TASK_ROOT}
+
+CMD ["hello.lamba_handler"]
